@@ -1,0 +1,72 @@
+---
+title: "LAB$4"
+author: "Alain Brou & Ibrahim Doukoure"
+date: "10/12/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+#In this first running, it is about the craetion of the data to respond our question
+
+```{r}
+attach(acs2017_ny)
+to_use_varb<-(AGE>=25)&(AGE<=55)&(LABFORCE==2)&(WKSWORK2 > 4) & (UHRSWORK >= 35)
+data_to_use<- subset(acs2017_ny,to_use_varb)
+detach()
+attach(data_to_use)
+```
+
+
+#Then we wrote some code to run the regression of Income wage on multiple variable such as AGE, Gender, Language , Veteran Status and Education
+
+
+```{r}
+model_templ1<-lm(INCWAGE~AGE+ female+ LINGISOL+ VETSTAT + educ_nohs + educ_hs+ educ_college+ educ_advdeg)
+summary(model_templ1)
+plot(model_templ1)
+stargazer(model_templ1, type=text)
+```
+
+#from the results, we can draw a conclusion such as the variable Education is highly significant in the determination of one income wage. Also, one variable stands out which is Linguistic Isolation with very small pvalue. this shows that the language ability could influence one income wage.
+#the variable veteran is signficant only at alpha= 10%, although statistcally significant, its impact on the income wage is not that strong.
+
+
+
+```{r}
+NNobserv<-length(INCWAGE)
+set.seed(123456)
+graph_observ<-(runif(NNobserv)<0.1)
+data_to_graph<-subset(data_to_use,graph_observ)
+
+```
+
+
+```{r}
+plot(INCWAGE ~ jitter(AGE, factor = 2), pch = 16, col = rgb(0.5, 0.5, 0.5, alpha = 0.2), data = data_to_graph)
+# ^^ that looks like crap since Wages are soooooooo skew!  So try to find some sensible ylim = c(0, ??)
+plot(INCWAGE ~ jitter(AGE, factor = 2), pch = 16, col = rgb(0.5, 0.5, 0.5, alpha = 0.2), ylim = c(0,150000), data = data_to_graph)
+# discus what you see in this plot
+tobepredicted<-data.frame(AGE= 25:55, female = 1, LINGISOL= 1,VETSTAT=2, educ_nohs=0,educ_hs=1,educ_college = 0, educ_advdeg= 0)
+tobepredicted$yhat<- predict(model_templ1, newdata = tobepredicted)
+lines(yhat~AGE,data= tobepredicted)
+```
+
+#In the data to be predicted, we tried to get rid of eductaion but have give  attention to teh variabe AGE,Gender as man and the avdantage of Language. the graph shows a positive regression line, that those variables have a significant role in the determination of Income wage. 
+
+
+```{r}
+detach()
+```
+
+
